@@ -11,6 +11,7 @@ import { Web3Wrapper } from '@0x/web3-wrapper';
 
 import { NETWORK_CONFIGS, TX_DEFAULTS } from '../configs';
 import { DECIMALS, NULL_ADDRESS, ZERO } from '../constants';
+// import { getContractAddressesForNetwork, getContractWrappersConfig } from '../contracts';
 import { contractAddresses } from '../contracts';
 import { PrintUtils } from '../print_utils';
 import { providerEngine } from '../provider_engine';
@@ -29,7 +30,9 @@ export async function scenarioAsync(): Promise<void> {
     // account information, balances, general contract logs
     const web3Wrapper = new Web3Wrapper(providerEngine);
     const [maker, taker] = await web3Wrapper.getAvailableAddressesAsync();
+    // const zrxTokenAddress = contractAddresses.zrxToken;
     const zrxTokenAddress = contractAddresses.zrxToken;
+    console.log("hahaha " + zrxTokenAddress);
     const etherTokenAddress = contractAddresses.etherToken;
     const printUtils = new PrintUtils(
         web3Wrapper,
@@ -45,6 +48,7 @@ export async function scenarioAsync(): Promise<void> {
     const takerAssetAmount = Web3Wrapper.toBaseUnitAmount(new BigNumber(0.1), DECIMALS);
     // 0x v2 uses hex encoded asset data strings to encode all the information needed to identify an asset
     const makerAssetData = assetDataUtils.encodeERC20AssetData(zrxTokenAddress);
+    // const makerAssetData = assetDataUtils.encodeERC20AssetData(etherTokenAddress);
     const takerAssetData = assetDataUtils.encodeERC20AssetData(etherTokenAddress);
     let txHash;
     let txReceipt;
