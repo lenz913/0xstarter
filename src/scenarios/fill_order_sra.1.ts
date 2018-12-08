@@ -32,7 +32,7 @@ export async function scenarioAsync(): Promise<void> {
     // account information, balances, general contract logs
     const web3Wrapper = new Web3Wrapper(providerEngine);
     // const [maker] = Id;
-    const [taker, maker] = await web3Wrapper.getAvailableAddressesAsync();
+    const [maker, taker] = await web3Wrapper.getAvailableAddressesAsync();
     const zrxTokenAddress = contractAddresses.zrxToken;
     const etherTokenAddress = contractAddresses.etherToken;
     const printUtils = new PrintUtils(
@@ -46,7 +46,7 @@ export async function scenarioAsync(): Promise<void> {
     const makerAssetData = assetDataUtils.encodeERC20AssetData(zrxTokenAddress);
     const takerAssetData = assetDataUtils.encodeERC20AssetData(etherTokenAddress);
     // the amount the maker is selling of maker asset
-    const makerAssetAmount = Web3Wrapper.toBaseUnitAmount(new BigNumber(0.1), DECIMALS);
+    const makerAssetAmount = Web3Wrapper.toBaseUnitAmount(new BigNumber(5), DECIMALS);
     // the amount the maker wants of taker asset
     const takerAssetAmount = Web3Wrapper.toBaseUnitAmount(new BigNumber(0.1), DECIMALS);
 
@@ -55,32 +55,32 @@ export async function scenarioAsync(): Promise<void> {
 
     // Allow the 0x ERC20 Proxy to move ZRX on behalf of makerAccount
     //commented this before
-    const makerZRXApprovalTxHash = await contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(
-        zrxTokenAddress,
-        maker,
-    );
-    await printUtils.awaitTransactionMinedSpinnerAsync('Maker ZRX Approval', makerZRXApprovalTxHash);
+    // const makerZRXApprovalTxHash = await contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(
+    //     zrxTokenAddress,
+    //     maker,
+    // );
+    // await printUtils.awaitTransactionMinedSpinnerAsync('Maker ZRX Approval', makerZRXApprovalTxHash);
 
     // Allow the 0x ERC20 Proxy to move WETH on behalf of takerAccount
-    const takerWETHApprovalTxHash = await contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(
-        etherTokenAddress,
-        taker,
-    );
-    await printUtils.awaitTransactionMinedSpinnerAsync('Taker WETH Approval', takerWETHApprovalTxHash);
+    // const takerWETHApprovalTxHash = await contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(
+    //     etherTokenAddress,
+    //     taker,
+    // );
+    // await printUtils.awaitTransactionMinedSpinnerAsync('Taker WETH Approval', takerWETHApprovalTxHash);
 
-    // Convert ETH into WETH for taker by depositing ETH into the WETH contract
-    const takerWETHDepositTxHash = await contractWrappers.etherToken.depositAsync(
-        etherTokenAddress,
-        takerAssetAmount,
-        taker,
-    );
-    await printUtils.awaitTransactionMinedSpinnerAsync('Taker WETH Deposit', takerWETHDepositTxHash);
+    // // Convert ETH into WETH for taker by depositing ETH into the WETH contract
+    // const takerWETHDepositTxHash = await contractWrappers.etherToken.depositAsync(
+    //     etherTokenAddress,
+    //     takerAssetAmount,
+    //     taker,
+    // );
+    // await printUtils.awaitTransactionMinedSpinnerAsync('Taker WETH Deposit', takerWETHDepositTxHash);
 
-    PrintUtils.printData('Setup', [
-        ['Maker ZRX Approval', makerZRXApprovalTxHash]
-        // ['Taker WETH Approval', takerWETHApprovalTxHash],
-        // ['Taker WETH Deposit', takerWETHDepositTxHash],
-    ]);
+    // PrintUtils.printData('Setup', [
+    //     ['Maker ZRX Approval', makerZRXApprovalTxHash]
+    //     // ['Taker WETH Approval', takerWETHApprovalTxHash],
+    //     // ['Taker WETH Deposit', takerWETHDepositTxHash],
+    // ]);
 
     // Initialize the Standard Relayer API client
     const httpClient = new HttpClient('http://localhost:3000/v2/');
@@ -100,8 +100,6 @@ export async function scenarioAsync(): Promise<void> {
         makerAssetData, //token addr maker is offering
         takerAssetData, //token addr maker is requesting from the taker
     };
-    console.log("HAHAHA JSUT TESTING");
-    console.log(NETWORK_CONFIGS.networkId);
     const orderConfig = await httpClient.getOrderConfigAsync(orderConfigRequest, {
         networkId: NETWORK_CONFIGS.networkId,
     });
@@ -117,18 +115,19 @@ export async function scenarioAsync(): Promise<void> {
     const orderHashHex = orderHashUtils.getOrderHashHex(order);
     const signature = await signatureUtils.ecSignHashAsync(providerEngine, orderHashHex, maker);
     const signedOrder = { ...order, signature };
+    console.log(signedOrder);
 
     // Validate this order
-    await contractWrappers.exchange.validateOrderFillableOrThrowAsync(signedOrder);
+    // await contractWrappers.exchange.validateOrderFillableOrThrowAsync(signedOrder);
 
     // Submit the order to the SRA Endpoint
     await httpClient.submitOrderAsync(signedOrder, { networkId: NETWORK_CONFIGS.networkId });
 
     const orderbookRequest: OrderbookRequest = { baseAssetData: makerAssetData, quoteAssetData: takerAssetData };
     const response = await httpClient.getOrderbookAsync(orderbookRequest, { networkId: NETWORK_CONFIGS.networkId });
-    console.log("HAHAHAHA " + response.asks.total);
+    console.log("Total orders in orderbook: " + response.asks.total);
     // Stop the Provider Engine
-    // providerEngine.stop();
+    providerEngine.stop();
 }
 
 void (async () => {

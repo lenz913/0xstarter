@@ -54,11 +54,11 @@ export async function scenarioAsync(): Promise<void> {
     let txReceipt;
 
     // Allow the 0x ERC20 Proxy to move ZRX on behalf of makerAccount
-    // const makerZRXApprovalTxHash = await contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(
-    //     zrxTokenAddress,
-    //     maker,
-    // );
-    // await printUtils.awaitTransactionMinedSpinnerAsync('Maker ZRX Approval', makerZRXApprovalTxHash);
+    const makerZRXApprovalTxHash = await contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(
+        zrxTokenAddress,
+        maker,
+    );
+    await printUtils.awaitTransactionMinedSpinnerAsync('Maker ZRX Approval', makerZRXApprovalTxHash);
 
     // Allow the 0x ERC20 Proxy to move WETH on behalf of takerAccount
     const takerWETHApprovalTxHash = await contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(
@@ -76,7 +76,7 @@ export async function scenarioAsync(): Promise<void> {
     await printUtils.awaitTransactionMinedSpinnerAsync('Taker WETH Deposit', takerWETHDepositTxHash);
 
     PrintUtils.printData('Setup', [
-        // ['Maker ZRX Approval', makerZRXApprovalTxHash],
+        ['Maker ZRX Approval', makerZRXApprovalTxHash],
         ['Taker WETH Approval', takerWETHApprovalTxHash],
         ['Taker WETH Deposit', takerWETHDepositTxHash],
     ]);
@@ -92,7 +92,7 @@ export async function scenarioAsync(): Promise<void> {
     const orderConfigRequest = {
         exchangeAddress,
         makerAddress: maker,
-        takerAddress: NULL_ADDRESS,
+        takerAddress: taker,
         expirationTimeSeconds: randomExpiration,
         makerAssetAmount,
         takerAssetAmount,
@@ -102,6 +102,7 @@ export async function scenarioAsync(): Promise<void> {
     const orderConfig = await httpClient.getOrderConfigAsync(orderConfigRequest, {
         networkId: NETWORK_CONFIGS.networkId,
     });
+    console.log("is it workinggg???");
 
     // Create the order
     const order: Order = {
@@ -112,11 +113,12 @@ export async function scenarioAsync(): Promise<void> {
 
     // // Generate the order hash and sign it
     const orderHashHex = orderHashUtils.getOrderHashHex(order);
-    // const signature = await signatureUtils.ecSignHashAsync(providerEngine, orderHashHex, maker);
-    // const signedOrder = { ...order, signature };
+    const signature = await signatureUtils.ecSignHashAsync(providerEngine, orderHashHex, maker);
+    const signedOrder = { ...order, signature };
 
     // // Validate this order
-    // await contractWrappers.exchange.validateOrderFillableOrThrowAsync(signedOrder);
+    await contractWrappers.exchange.validateOrderFillableOrThrowAsync(signedOrder);
+    console.log("is it workinggg again????");
 
     // // Submit the order to the SRA Endpoint
     // await httpClient.submitOrderAsync(signedOrder, { networkId: NETWORK_CONFIGS.networkId });
@@ -128,10 +130,13 @@ export async function scenarioAsync(): Promise<void> {
         throw new Error('No orders found on the SRA Endpoint');
     }
     const sraOrder = response.asks.records[0].order;
+    
     printUtils.printOrder(sraOrder);
+    console.log("is it workinggg again again????");
 
     // Validate the order is Fillable given the maker and taker balances
     await contractWrappers.exchange.validateFillOrderThrowIfInvalidAsync(sraOrder, takerAssetAmount, taker);
+    console.log("omg????");
 
     // Fill the Order via 0x Exchange contract
     txHash = await contractWrappers.exchange.fillOrderAsync(sraOrder, takerAssetAmount, taker, {
@@ -139,9 +144,11 @@ export async function scenarioAsync(): Promise<void> {
     });
     txReceipt = await printUtils.awaitTransactionMinedSpinnerAsync('fillOrder', txHash);
     printUtils.printTransaction('fillOrder', txReceipt, [['orderHash', orderHashHex]]);
+    console.log("omg OMG????");
 
     // Print the Balances
     await printUtils.fetchAndPrintContractBalancesAsync();
+    console.log("NANNIII????");
 
     // Stop the Provider Engine
     providerEngine.stop();
