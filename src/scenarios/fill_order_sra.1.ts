@@ -100,6 +100,7 @@ export async function scenarioAsync(): Promise<void> {
         makerAssetData, //token addr maker is offering
         takerAssetData, //token addr maker is requesting from the taker
     };
+    console.log("hiiiii " + exchangeAddress);
     const orderConfig = await httpClient.getOrderConfigAsync(orderConfigRequest, {
         networkId: NETWORK_CONFIGS.networkId,
     });
@@ -125,6 +126,8 @@ export async function scenarioAsync(): Promise<void> {
 
     const orderbookRequest: OrderbookRequest = { baseAssetData: makerAssetData, quoteAssetData: takerAssetData };
     const response = await httpClient.getOrderbookAsync(orderbookRequest, { networkId: NETWORK_CONFIGS.networkId });
+    // console.log(response.asks.records[1]);
+    console.log(response.asks.records[0].order.makerAssetAmount);
     console.log("Total orders in orderbook: " + response.asks.total);
     // Stop the Provider Engine
     providerEngine.stop();
@@ -141,4 +144,3 @@ void (async () => {
         process.exit(1);
     }
 })();
-

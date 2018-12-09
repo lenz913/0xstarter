@@ -102,7 +102,6 @@ export async function scenarioAsync(): Promise<void> {
     const orderConfig = await httpClient.getOrderConfigAsync(orderConfigRequest, {
         networkId: NETWORK_CONFIGS.networkId,
     });
-    console.log("is it workinggg???");
 
     // Create the order
     const order: Order = {
@@ -118,7 +117,6 @@ export async function scenarioAsync(): Promise<void> {
 
     // // Validate this order
     await contractWrappers.exchange.validateOrderFillableOrThrowAsync(signedOrder);
-    console.log("is it workinggg again????");
 
     // // Submit the order to the SRA Endpoint
     // await httpClient.submitOrderAsync(signedOrder, { networkId: NETWORK_CONFIGS.networkId });
@@ -129,14 +127,13 @@ export async function scenarioAsync(): Promise<void> {
     if (response.asks.total === 0) {
         throw new Error('No orders found on the SRA Endpoint');
     }
+    console.log("hello " + response.asks.records + " hello");
     const sraOrder = response.asks.records[0].order;
-    
+
     printUtils.printOrder(sraOrder);
-    console.log("is it workinggg again again????");
 
     // Validate the order is Fillable given the maker and taker balances
     await contractWrappers.exchange.validateFillOrderThrowIfInvalidAsync(sraOrder, takerAssetAmount, taker);
-    console.log("omg????");
 
     // Fill the Order via 0x Exchange contract
     txHash = await contractWrappers.exchange.fillOrderAsync(sraOrder, takerAssetAmount, taker, {
@@ -144,11 +141,13 @@ export async function scenarioAsync(): Promise<void> {
     });
     txReceipt = await printUtils.awaitTransactionMinedSpinnerAsync('fillOrder', txHash);
     printUtils.printTransaction('fillOrder', txReceipt, [['orderHash', orderHashHex]]);
-    console.log("omg OMG????");
 
     // Print the Balances
     await printUtils.fetchAndPrintContractBalancesAsync();
-    console.log("NANNIII????");
+    
+    const orderbookRequest2: OrderbookRequest = { baseAssetData: makerAssetData, quoteAssetData: takerAssetData };
+    const response2 = await httpClient.getOrderbookAsync(orderbookRequest, { networkId: NETWORK_CONFIGS.networkId });
+    console.log("Total orders in orderbook: " + response.asks.total);
 
     // Stop the Provider Engine
     providerEngine.stop();
