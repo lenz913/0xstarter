@@ -24,6 +24,7 @@ import { getRandomFutureDateInSeconds } from '../utils';
  * The taker fills this order via the 0x Exchange contract.
  */
 export async function scenarioAsync(): Promise<void> {
+    biggest: BigNumber;
     PrintUtils.printScenario('Fill Order Standard Relayer API (Taker)');
     // Initialize the ContractWrappers, this provides helper functions around calling
     // 0x contracts as well as ERC20/ERC721 token contracts on the blockchain
@@ -89,9 +90,43 @@ export async function scenarioAsync(): Promise<void> {
     const exchangeAddress = contractAddresses.exchange;
 
     // Ask the relayer about the parameters they require for the order
+    
+
+    // // Submit the order to the SRA Endpoint
+    // await httpClient.submitOrderAsync(signedOrder, { networkId: NETWORK_CONFIGS.networkId });
+
+    // Taker queries the Orderbook from the Relayer
+    const orderbookRequest: OrderbookRequest = { baseAssetData: makerAssetData, quoteAssetData: takerAssetData };
+    const response = await httpClient.getOrderbookAsync(orderbookRequest, { networkId: NETWORK_CONFIGS.networkId });
+    if (response.asks.total === 0) {
+        throw new Error('No orders found on the SRA Endpoint');
+    }
+    console.log('List of maker amount on orderbook');
+    var pter = 0;
+    let biggest = new BigNumber(0);
+    for (var record in response.asks.records) {
+        console.log(response.asks.records[record].order.makerAssetAmount)
+        if ((response.asks.records[record].order.makerAssetAmount) > makerAssetAmount) {
+            if ((response.asks.records[record].order.makerAssetAmount) > biggest) {
+                biggest = response.asks.records[record].order.makerAssetAmount;
+                pter = parseInt(record);
+                // orderConfigRequest.makerAddress = response.asks.records[record].order.makerAddress;
+                console.log("Checking pointer number " + pter);
+            }
+        }
+    }
+    console.log('End of orderbook')
+    let comparenum = new BigNumber(0);
+    if (biggest == comparenum) {
+        console.log("Amount is not optimal as stated by taker. No swap will occur.");
+    }
+    // console.log(pter);
+    // console.log("hello " + response.asks.records + " hello");
+
     const orderConfigRequest = {
         exchangeAddress,
-        makerAddress: maker,
+        makerAddress: response.asks.records[pter].order.makerAddress,
+        // makerAddress: maker,
         takerAddress: taker,
         expirationTimeSeconds: randomExpiration,
         makerAssetAmount,
@@ -118,17 +153,7 @@ export async function scenarioAsync(): Promise<void> {
     // // Validate this order
     await contractWrappers.exchange.validateOrderFillableOrThrowAsync(signedOrder);
 
-    // // Submit the order to the SRA Endpoint
-    // await httpClient.submitOrderAsync(signedOrder, { networkId: NETWORK_CONFIGS.networkId });
-
-    // Taker queries the Orderbook from the Relayer
-    const orderbookRequest: OrderbookRequest = { baseAssetData: makerAssetData, quoteAssetData: takerAssetData };
-    const response = await httpClient.getOrderbookAsync(orderbookRequest, { networkId: NETWORK_CONFIGS.networkId });
-    if (response.asks.total === 0) {
-        throw new Error('No orders found on the SRA Endpoint');
-    }
-    console.log("hello " + response.asks.records + " hello");
-    const sraOrder = response.asks.records[0].order;
+    const sraOrder = response.asks.records[pter].order;
 
     printUtils.printOrder(sraOrder);
 
@@ -145,9 +170,9 @@ export async function scenarioAsync(): Promise<void> {
     // Print the Balances
     await printUtils.fetchAndPrintContractBalancesAsync();
     
-    const orderbookRequest2: OrderbookRequest = { baseAssetData: makerAssetData, quoteAssetData: takerAssetData };
-    const response2 = await httpClient.getOrderbookAsync(orderbookRequest, { networkId: NETWORK_CONFIGS.networkId });
-    console.log("Total orders in orderbook: " + response.asks.total);
+    // const orderbookRequest2: OrderbookRequest = { baseAssetData: makerAssetData, quoteAssetData: takerAssetData };
+    // const response2 = await httpClient.getOrderbookAsync(orderbookRequest, { networkId: NETWORK_CONFIGS.networkId });
+    // console.log("Total orders in orderbook: " + response.asks.total);
 
     // Stop the Provider Engine
     providerEngine.stop();

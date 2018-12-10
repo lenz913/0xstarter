@@ -46,7 +46,7 @@ export async function scenarioAsync(): Promise<void> {
     const makerAssetData = assetDataUtils.encodeERC20AssetData(zrxTokenAddress);
     const takerAssetData = assetDataUtils.encodeERC20AssetData(etherTokenAddress);
     // the amount the maker is selling of maker asset
-    const makerAssetAmount = Web3Wrapper.toBaseUnitAmount(new BigNumber(5), DECIMALS);
+    const makerAssetAmount = Web3Wrapper.toBaseUnitAmount(new BigNumber(7), DECIMALS);
     // the amount the maker wants of taker asset
     const takerAssetAmount = Web3Wrapper.toBaseUnitAmount(new BigNumber(0.1), DECIMALS);
 

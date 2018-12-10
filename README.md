@@ -4,22 +4,17 @@
 
 ![cli](https://user-images.githubusercontent.com/27389/42074402-6dcc5ccc-7baf-11e8-84f1-9a27f1a96b08.png)
 
-This project will take you through a number of scenarios using the 0x v2 protocol.
-The previous v1 starter project has been moved to the ['v1' branch](https://github.com/0xProject/0x-starter-project/tree/v1).
+# 0x Starter modified
+
+This project is meant to isolate the maker and taker scenario for interecting with a Standard Relayer, by running these 2 scenarios from the command-line:
 
 ## Scenarios
 
-This repository contains a bunch of scenarios that you can run from the command-line:
+- Maker
+- Taker
 
--   Fill order (ERC20)
--   Fill order Fees
--   Fill order (ERC721)
--   Cancel orders up to
--   Match orders
--   Execute transaction
--   Forwarder buy orders (ERC20)
--   Forwarder buy orders (ERC721)
--   Standard Relayer API fill order example
+Below are the descriptions that you can find from the 0x-starter-kit to help you build the project.
+If you are interested in trying out other scenarios, you can go to (https://github.com/0xProject/0x-starter-project) and check out the other provided scenarios.
 
 ## Getting Started
 
@@ -46,16 +41,22 @@ yarn download_snapshot
 yarn ganache-cli
 ```
 
-Run a scenario in another terminal:
+Start the Standard Relayer in another terminal:
 
 ```
-yarn scenario:fill_order_erc20
+yarn scenario:fake_sra_server
 ```
 
-To run all scenarios:
+Start the Maker scenario, to deploy contracts to the orderbook:
 
 ```
-yarn scenario:all
+yarn scenario:maker
+```
+
+Start the Taker scenario, to take the most optimal contract offered by the makers:
+
+```
+yarn scenario:taker
 ```
 
 All the scenarios commands can be found in the `package.json`'s `scripts` section and begin with `scenario:`.
@@ -74,20 +75,6 @@ For Kovan:
 
 ```
 export const NETWORK_CONFIGS = KOVAN_CONFIGS;
-```
-
-### Fill Order SRA Example
-
-To run the Fill Order SRA Example you must first start up a server in another terminal:
-
-```
-yarn fake_sra_server
-```
-
-Then in another terminal run:
-
-```
-yarn scenario:fill_order_sra
 ```
 
 ### Windows Development Setup
